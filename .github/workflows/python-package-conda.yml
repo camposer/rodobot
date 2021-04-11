@@ -18,16 +18,15 @@ jobs:
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda env update --file environment.yml --name base
     - name: Configure ta-lib
       run: |
         apt update
         apt install -y build-essential
         bash config/ta-lib.sh
-    - name: Test with pytest
+    - name: Install dependencies
       run: |
         conda install pip
         pip install -r requirements/dev.txt
+    - name: Test with pytest
+      run: |
         pytest
