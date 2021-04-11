@@ -28,5 +28,6 @@ jobs:
         bash config/ta-lib.sh
     - name: Test with pytest
       run: |
-        conda install -r requirements/dev.txt
+        conda install pip
+        pip install -r requirements/dev.txt
         pytest
