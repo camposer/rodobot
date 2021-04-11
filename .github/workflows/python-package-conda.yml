@@ -20,9 +20,10 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Configure ta-lib
       run: |
-        apt update
-        apt install -y build-essential
-        bash config/ta-lib.sh
+        sudo apt update
+        sudo apt install -y build-essential
+        chmod +x config/ta-lib.sh
+        sudo ./config/ta-lib.sh
     - name: Install dependencies
       run: |
         conda install pip
