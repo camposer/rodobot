@@ -17,3 +17,15 @@ conda activate venv/
 pip install -r requirements/dev.txt
 ```
 
+## Run Tests
+
+### Locally
+```
+pytest
+```
+
+### Using Docker
+```
+docker build -t rodobot .
+docker run --rm -it rodobot pytest
+```
