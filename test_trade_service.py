@@ -29,7 +29,7 @@ class KlinesEnum(Enum):
 class TrendEnum(Enum):
     UPWARD = 0
     DOWNWARD = 1
-    SIDEWAY = 3
+    SIDEWAYS = 3
 
 class KlinesTimeSpan(Enum):
     THIRTY_MIN = "30 min ago UTC"
@@ -63,20 +63,23 @@ class TradeService:
         return numpy.array([float(kline[KlinesEnum.CLOSE.value]) for kline in klines])
 
     def __get_ema_trend(self, prices):
-        fast = self.__calculate_ema(prices, 9)
-        medium = self.__calculate_ema(prices, 26)
-        slow = self.__calculate_ema(prices, 50)
-        if (fast >= medium).all() and (medium >= slow).all():
+        fast = talib.EMA(prices, timeperiod = 9)
+        medium = talib.EMA(prices, timeperiod = 26)
+        slow = talib.EMA(prices, timeperiod = 50)
+        if self.__compare(fast, medium, numpy.greater) and self.__compare(medium, slow, numpy.greater):
             return TrendEnum.UPWARD
-        elif (fast <= medium).all() and (medium <= slow).all():
+        elif self.__compare(fast, medium, numpy.less) and self.__compare(medium, slow, numpy.less):
             return TrendEnum.DOWNWARD
-        return TrendEnum.SIDEWAY
+        return TrendEnum.SIDEWAYS
 
-    def __calculate_ema(self, prices, timeperiod):
-        ema = talib.EMA(prices, timeperiod = timeperiod)
-        ema[numpy.isnan(ema)] = 0 # removing nan
-        return ema
-
+    def __compare(self, a, b, compare_fn):
+        return compare_fn(
+            a, b, 
+            where = numpy.logical_not(numpy.logical_or(
+                numpy.isnan(a), 
+                numpy.isnan(b)
+            ))
+        ).all()
 
 ticker = "BNBBTC"
 mock_client = True # Use an environment variable
@@ -104,6 +107,16 @@ class TestTradeService_DownwardTrend:
     def test_is_moment_to_buy(self, trade_service):
         assert not trade_service.is_moment_to_buy(ticker)
 
+class TestTradeService_SidewaysTrend:
+    @pytest.fixture
+    def trade_service(self):
+        config = get_config()
+        client = create_client(get_historical_klines_sideways)
+        return TradeService(client)
+        
+    def test_is_moment_to_buy(self, trade_service):
+        assert not trade_service.is_moment_to_buy(ticker)
+
 
 def create_client(get_historical_klines_fn):
     if not mock_client:
@@ -123,3 +136,9 @@ def get_historical_klines_downward(ticker, interval, time_span):
         return [[None, None, None, None, i] for i in range(29, 0, -1)]
     else: # time_span == KlinesTimeSpan.FIVE_MIN.value:
         return [[None, None, None, None, i] for i in range(4, 0, -1)]
+
+def get_historical_klines_sideways(ticker, interval, time_span):
+    if time_span == KlinesTimeSpan.THIRTY_MIN.value:
+        return [[None, None, None, None, 1] for _ in range(30)]
+    else: # time_span == KlinesTimeSpan.FIVE_MIN.value:
+        return [[None, None, None, None, 1] for i in range(5)]
