@@ -43,19 +43,19 @@ class TradeService:
     def is_moment_to_buy(self, ticker):
         general_prices = self.__get_closing_prices(ticker, KlinesTimeSpan.THIRTY_MIN)
         general_trend = self.__get_ema_trend(general_prices)
-        if general_trend == TrendEnum.DOWNWARD:
+        if general_trend == TrendEnum.SIDEWAYS:
             return False
 
         instant_prices = self.__get_closing_prices(ticker, KlinesTimeSpan.FIVE_MIN)
         instant_trend = self.__get_ema_trend(instant_prices)
-        if instant_trend == TrendEnum.DOWNWARD or general_trend != instant_trend:
+        if (
+            instant_trend == TrendEnum.SIDEWAYS 
+            or general_trend != instant_trend 
+            or general_trend == TrendEnum.DOWNWARD # Not considering downward trends for now
+        ): 
             return False
 
-        if general_trend == TrendEnum.DOWNWARD:
-            return False # Not considering downward trends for now
-
-        # is_moment_moment_for_buy: RSI + Sthocastic
-        # if not is_moment_for_buy(id): exit()
+        # TODO Check RSI + Sthocastic
         return True
 
     def __get_closing_prices(self, ticker, time_span):
@@ -82,25 +82,20 @@ class TradeService:
         ).all()
 
 ticker = "BNBBTC"
-mock_client = True # Use an environment variable
+mock_client = True # Change for specific tests 
 
 class TestTradeService_UpwardTrend:
     @pytest.fixture
     def trade_service(self):
-        config = get_config()
         client = create_client(get_historical_klines_upward)
         return TradeService(client)
         
     def test_is_moment_to_buy(self, trade_service):
         assert trade_service.is_moment_to_buy(ticker)
 
-    # test_upward
-    # test_downward
-
 class TestTradeService_DownwardTrend:
     @pytest.fixture
     def trade_service(self):
-        config = get_config()
         client = create_client(get_historical_klines_downward)
         return TradeService(client)
         
@@ -110,7 +105,6 @@ class TestTradeService_DownwardTrend:
 class TestTradeService_SidewaysTrend:
     @pytest.fixture
     def trade_service(self):
-        config = get_config()
         client = create_client(get_historical_klines_sideways)
         return TradeService(client)
         
@@ -120,6 +114,7 @@ class TestTradeService_SidewaysTrend:
 
 def create_client(get_historical_klines_fn):
     if not mock_client:
+        config = get_config()
         return Client(config['API_KEY'], config['API_SECRET'])
     client = MagicMock()
     client.get_historical_klines = MagicMock(side_effect=get_historical_klines_fn)
