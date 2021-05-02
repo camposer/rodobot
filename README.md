@@ -1,5 +1,7 @@
 # rodobot
 
+Simple trading bot using the Binance API
+
 ## Setup
 
 ### Pre setup
