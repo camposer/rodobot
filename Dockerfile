@@ -15,3 +15,5 @@ RUN pip install \
       --disable-pip-version-check \
       -r requirements/common.txt
 
+# TODO Copy app resources under app folder
+# TODO Create user and use it
