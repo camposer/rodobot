@@ -1,0 +1,33 @@
+name: Python Package using Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Configure ta-lib
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential
+        chmod +x config/ta-lib.sh
+        sudo ./config/ta-lib.sh
+    - name: Install dependencies
+      run: |
+        conda install pip
+        pip install -r requirements/dev.txt
+    - name: Test with pytest
+      run: |
+        pytest
