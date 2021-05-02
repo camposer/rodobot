@@ -12,7 +12,4 @@ def test_ema():
   c = numpy.random.randn(100)
   # this is the library function
   d = talib.EMA(c, timeperiod = 30)
-  print(c)
-  print(d)
-  assert False
- 
+  assert d is not None 

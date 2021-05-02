@@ -1,2 +1,3 @@
 numpy
 TA-Lib
+python-binance
