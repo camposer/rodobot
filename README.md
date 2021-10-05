@@ -31,3 +31,4 @@ pytest
 docker build -t rodobot .
 docker run --rm -it rodobot pytest
 ```
+
